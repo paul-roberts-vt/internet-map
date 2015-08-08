@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Percent Internet Users</title>
+
+<link rel="stylesheet" type="text/css" href="hopeyea.css">
+
+<link href="jquery-jvectormap.css" media="screen" rel="stylesheet" type="text/css" />
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
+<script src="jquery-jvectormap.js" type="text/javascript"></script>
+<script src="jquery-jvectormap-1.2.2.min.js" type="text/javascript"></script>
+<script src="jquery-jvectormap-world-mill-en.js" type="text/javascript"></script>
+
+<script src="internet-data.js" type="text/javascript"></script>
+
+
+</head>
+<body bgcolor="#ACACAC">
+
+
+	<div id = "outer">
+
+	<div id = "inner">
+        <h2>Percent Internet Users Data Visualization</h2>
+	<div><h2><div id="currentyear"></div></h2></div>
+	<div><h3><div id = "population"></div></h3><div>
+
+	<input type="submit" class="button" id="prev" value="< Prev Year"/>
+	<input type="submit" class="button" id="pause" value="Pause"/>
+	<input type="submit" class="button" id="next" value="Next Year >"/>
+	<div id="world-map" style="width: 1000px; height: 500px"></div>
+
+	<input type="submit" class="button" id="focus-ALL" value="Focus on World"/>
+	<input type="submit" class="button" id="focus-AF" value="Focus on Africa"/>
+	<input type="submit" class="button" id="focus-AS" value="Focus on Asia"/>
+	<input type="submit" class="button" id="focus-SA" value="Focus on S. America"/>
+	<input type="submit" class="button" id="focus-NA" value="Focus on N. America"/>
+	<input type="submit" class="button" id="focus-EU" value="Focus on Europe"/>
+	<input type="submit" class="button" id="focus-OC" value="Focus on Oceania"/>
+	</div>
+        <div><h3>Key for Colors:
+        <font color='#D1FFD1'>0%</font>
+        <font color="black">-</font>
+        <font color='#1F4C1F'>100%</font></div>
+	</h3></div>
+
+	<p> </p>
+	<div>*Data from International Telecommunication Union</div>
+
+	<script>
+	var $ = jQuery;
+	$(function() {
+
+	var ytext = "Current Year: ";
+	var year = 2000;
+    var intervId;
+    var lookup = [];
+    var internetData = int2000data;
+	var paused = false;
+
+	var totalUsers = {
+	"2000":"413,425,190 or 6.7%",
+	"2001":"500,609,240 or 8.1%",
+	"2002":"662,663,600 or 10.6%",
+	"2003":"778,555,680 or 12.2%",
+	"2004":"910,060,180 or 14.1%",
+	"2005":"1,029,717,906 or 15.8%",
+	"2006":"1,157,500,065 or 17.6%",
+	"2007":"1,373,040,542 or 20.6%",
+	"2008":"1,562,067,594 or 23.1%",
+	"2009":"1,752,333,178 or 25.6%",
+	"2010":"2,034,259,368 or 29.4%",
+	"2011":"2,272,463,038 or 32.5%",
+	"2012":"2,511,615,523 or 35.5%",
+	};
+
+
+    console.log( internetData );
+	$('#pause').click(function(){
+		paused = true;
+	});
+	$('#next').click(function(){
+		year += 1;
+		if (year > 2012){
+			year = 2000;
+		}
+		Update();
+
+	});
+	$('#prev').click(function(){
+		year += -1;
+		if (year < 2000){
+			year = 2012;
+		}
+		Update();
+	});
+
+
+	$('#focus-ALL').click(function(){
+		$('#world-map').vectorMap('set', 'focus', 1, 0, 0);
+	});
+
+	$('#focus-AS').click(function(){
+		$('#world-map').vectorMap('set', 'focus', ['CH', 'JP']);
+	});
+	$('#focus-NA').click(function(){
+		$('#world-map').vectorMap('set', 'focus', ['CA', 'PA']);
+	});
+	$('#focus-SA').click(function(){
+		$('#world-map').vectorMap('set', 'focus', ['VE', 'CL']);
+	});
+	$('#focus-AF').click(function(){
+		$('#world-map').vectorMap('set', 'focus', ['ZA', 'MA']);
+	});
+	$('#focus-EU').click(function(){
+		$('#world-map').vectorMap('set', 'focus', ['IS', 'TR']);
+	});
+	$('#focus-OC').click(function(){
+		$('#world-map').vectorMap('set', 'focus', ['NZ', 'ID']);
+	});
+
+
+	$('#currentyear').html(ytext + year);
+	$('#population').html("World Wide Users: " + totalUsers[year]);
+
+	//World map by jvectormap
+	$('#world-map').vectorMap( {
+		map: 'world_mill_en',
+		backgroundColor: "#336699", //"#fff",
+		regionStyle: {
+			initial: {
+				fill: '#e4e4e4',
+				"fill-opacity": 1,
+				stroke: 'none',
+				"stroke-width": 0,
+				"stroke-opacity": 1
+			}
+		},
+		series: {
+			regions: [{
+				values: internetData,
+				scale: ['#D1FFD1', '#1F4C1F'], //['#C8EEFF', '#0071A4'],
+				normalizeFunction: 'linear'
+			}]
+		},
+		onRegionLabelShow: function(e, el, code) {
+			if (typeof internetData != "N/A")
+			el.html(el.html() + ': ' +(internetData[code])+ '%');
+		}
+	});
+
+
+	var mapObject = $('#world-map').vectorMap('get', 'mapObject');
+
+
+	ScheduleInterval();
+
+
+	function ScheduleInterval() {
+		intervId = setInterval( function () { Update(); }, 1000 );
+	}
+
+	function Update() {
+		console.log(paused)
+		if (paused == false){
+			year += 1;
+
+			if (year > 2012){
+				year = 2000;
+			}
+		}
+		console.log( " updating #word-map data" )
+		$.getJSON('ajax/final-json.json', function( data ) {
+
+			$('#currentyear').html(ytext + year);
+			$('#population').html("World Wide Users: " + totalUsers[year]);
+			internetData = data[year];
+		});
+		mapObject.series.regions[0].clear();
+		mapObject.series.regions[0].setValues( internetData )
+	};
+
+
+});
+
+ </script>
+</body>
+</html>
