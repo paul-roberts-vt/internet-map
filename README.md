@@ -1,4 +1,4 @@
-# internet-map
+# Map of Internet Users by Country overtime
 Interactive map of the world that shows internet users overtime.
 
 Uses JVectorMap - https://github.com/bjornd/jvectormap
